@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasbih Timer Counter</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f0;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    .wrap {
+      padding: 1.5rem 1rem;
+      max-width: 380px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 500;
+      text-align: center;
+      margin-bottom: 0.25rem;
+      color: #1a1a1a;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #666;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Ring */
+    .ring-wrap {
+      position: relative;
+      width: 210px;
+      height: 210px;
+      margin: 0 auto 1.5rem;
+    }
+
+    svg.ring-svg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 210px; height: 210px;
+      transform: rotate(-90deg);
+    }
+
+    .ring-inner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .main-count {
+      font-size: 54px;
+      font-weight: 500;
+      color: #1a1a1a;
+      line-height: 1;
+    }
+
+    .sec-label {
+      font-size: 13px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .phase-badge {
+      font-size: 11px;
+      margin-top: 6px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .phase-up   { background: #EAF3DE; color: #3B6D11; }
+    .phase-down { background: #FAECE7; color: #993C1D; }
+
+    /* Start button */
+    .start-btn {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 1.25rem;
+      border-radius: 8px;
+      border: 0.5px solid #bbb;
+      background: #fff;
+      cursor: pointer;
+      transition: background 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .start-btn:hover { background: #f0f0ea; }
+    .start-btn:active { transform: scale(0.98); }
+
+    /* Total row */
+    .total-row {
+      background: #ebebea;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      transition: background 0.4s;
+    }
+
+    .total-row span { font-size: 13px; color: #555; }
+    .total-row strong { font-size: 18px; font-weight: 500; color: #1a1a1a; }
+
+    .flash-beep { animation: beepflash 0.4s ease; }
+    @keyframes beepflash {
+      0%  { background: #C0DD97; }
+      100%{ background: #ebebea; }
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+
+    .stat {
+      background: #ebebea;
+      border-radius: 8px;
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+    }
+
+    .stat-val { font-size: 20px; font-weight: 500; color: #1a1a1a; }
+    .stat-lbl { font-size: 11px; color: #666; margin-top: 2px; }
+
+    /* Controls */
+    .controls { display: flex; flex-direction: column; gap: 10px; }
+
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ctrl-row label {
+      font-size: 13px;
+      color: #555;
+      min-width: 90px;
+    }
+
+    .ctrl-row input[type=number] {
+      width: 70px;
+      padding: 6px 8px;
+      border: 0.5px solid #bbb;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #fff;
+      color: #1a1a1a;
+    }
+
+    .ctrl-row button, .btn-row button {
+      flex: 1;
+      padding: 7px 14px;
+      border: 0.5px solid #bbb;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .ctrl-row button:hover, .btn-row button:hover { background: #f0f0ea; }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 0.5rem;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      body { background: #1a1a1a; color: #f0f0ea; }
+      h1 { color: #f0f0ea; }
+      .main-count { color: #f0f0ea; }
+      .total-row { background: #2a2a2a; }
+      .total-row span { color: #aaa; }
+      .total-row strong { color: #f0f0ea; }
+      .stat { background: #2a2a2a; }
+      .stat-val { color: #f0f0ea; }
+      .stat-lbl { color: #aaa; }
+      .start-btn { background: #2a2a2a; border-color: #444; color: #f0f0ea; }
+      .start-btn:hover { background: #333; }
+      .ctrl-row label { color: #aaa; }
+      .ctrl-row input[type=number] { background: #2a2a2a; border-color: #444; color: #f0f0ea; }
+      .ctrl-row button, .btn-row button { background: #2a2a2a; border-color: #444; color: #f0f0ea; }
+      .ctrl-row button:hover, .btn-row button:hover { background: #333; }
+      .sec-label { color: #aaa; }
+      .subtitle { color: #aaa; }
+      @keyframes beepflash {
+        0%  { background: #27500A; }
+        100%{ background: #2a2a2a; }
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Tasbih Timer Counter</h1>
+    <p class="subtitle">Count increases automatically every N seconds</p>
+
+    <div class="ring-wrap">
+      <svg class="ring-svg" viewBox="0 0 210 210">
+        <circle cx="105" cy="105" r="90" fill="none" stroke="#e0e0d8" stroke-width="8"/>
+        <circle id="arcBar" cx="105" cy="105" r="90" fill="none" stroke="#534AB7" stroke-width="8"
+          stroke-linecap="round" stroke-dasharray="565.5" stroke-dashoffset="565.5"/>
+      </svg>
+      <div class="ring-inner">
+        <div class="main-count" id="mainDisp">1</div>
+        <div class="sec-label" id="secLabel">0.0s / 5s</div>
+        <div class="phase-badge phase-up" id="phaseBadge">counting up ↑</div>
+      </div>
+    </div>
+
+    <button class="start-btn" id="startBtn" onclick="toggleTimer()">
+      <i class="ti ti-player-play"></i> Start
+    </button>
+
+    <div class="total-row" id="totalRow">
+      <span>Total counts</span>
+      <strong id="totalDisp">0</strong>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val" id="s123">0</div>
+        <div class="stat-lbl">Up rounds</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="s321">0</div>
+        <div class="stat-lbl">Down rounds</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="sCycles">0</div>
+        <div class="stat-lbl">Full cycles</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="ctrl-row">
+        <label>Seconds (N)</label>
+        <input type="number" id="subSec" value="5" min="1" max="60">
+        <button onclick="applySeconds()">Apply</button>
+      </div>
+      <div class="btn-row">
+        <button onclick="resetAll()"><i class="ti ti-refresh"></i> Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let N = 5;
+    let maxCount = N;
+    let currentMain = 1;
+    let phase = 'up';
+    let total = 0;
+    let upRounds = 0;
+    let downRounds = 0;
+    let cycles = 0;
+    let running = false;
+    let elapsed = 0;
+    let lastTick = null;
+    let rafId = null;
+
+    const CIRC = 2 * Math.PI * 90;
+    const arcBar = document.getElementById('arcBar');
+    const mainDisp = document.getElementById('mainDisp');
+    const secLabel = document.getElementById('secLabel');
+    const phaseBadge = document.getElementById('phaseBadge');
+    const totalDisp = document.getElementById('totalDisp');
+    const totalRow = document.getElementById('totalRow');
+    const s123 = document.getElementById('s123');
+    const s321 = document.getElementById('s321');
+    const sCycles = document.getElementById('sCycles');
+    const startBtn = document.getElementById('startBtn');
+
+    function beep(freq = 880, dur = 0.4) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.5, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+        osc.start();
+        osc.stop(ctx.currentTime + dur);
+      } catch(e) {}
+    }
+
+    function updateDisplay() {
+      mainDisp.textContent = currentMain;
+      secLabel.textContent = elapsed.toFixed(1) + 's / ' + N + 's';
+      totalDisp.textContent = total;
+      s123.textContent = upRounds;
+      s321.textContent = downRounds;
+      sCycles.textContent = cycles;
+      const frac = Math.min(elapsed / N, 1);
+      arcBar.style.strokeDashoffset = CIRC * (1 - frac);
+      if (phase === 'up') {
+        phaseBadge.className = 'phase-badge phase-up';
+        phaseBadge.textContent = 'counting up ↑';
+      } else {
+        phaseBadge.className = 'phase-badge phase-down';
+        phaseBadge.textContent = 'counting down ↓';
+      }
+    }
+
+    function advance() {
+      total++;
+      beep(phase === 'up' ? 660 : 880, 0.25);
+      if (phase === 'up') {
+        upRounds++;
+        if (currentMain < maxCount) {
+          currentMain++;
+        } else {
+          phase = 'down';
+          currentMain--;
+        }
+      } else {
+        downRounds++;
+        if (currentMain > 1) {
+          currentMain--;
+        } else {
+          cycles++;
+          beep(1320, 0.6);
+          flashTotal();
+          currentMain = 1;
+          phase = 'up';
+          maxCount = N;
+        }
+      }
+    }
+
+    function flashTotal() {
+      totalRow.classList.remove('flash-beep');
+      void totalRow.offsetWidth;
+      totalRow.classList.add('flash-beep');
+    }
+
+    function tick(ts) {
+      if (!running) return;
+      if (lastTick === null) lastTick = ts;
+      const delta = (ts - lastTick) / 1000;
+      lastTick = ts;
+      elapsed += delta;
+      if (elapsed >= N) {
+        elapsed = elapsed - N;
+        advance();
+      }
+      updateDisplay();
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function toggleTimer() {
+      if (!running) {
+        running = true;
+        lastTick = null;
+        startBtn.innerHTML = '<i class="ti ti-player-pause"></i> Pause';
+        rafId = requestAnimationFrame(tick);
+      } else {
+        running = false;
+        lastTick = null;
+        startBtn.innerHTML = '<i class="ti ti-player-play"></i> Resume';
+        cancelAnimationFrame(rafId);
+      }
+    }
+
+    function applySeconds() {
+      const v = parseInt(document.getElementById('subSec').value);
+      if (v >= 1 && v <= 60) { N = v; resetAll(); }
+    }
+
+    function resetAll() {
+      running = false;
+      cancelAnimationFrame(rafId);
+      elapsed = 0;
+      lastTick = null;
+      currentMain = 1;
+      phase = 'up';
+      maxCount = N;
+      total = 0;
+      upRounds = 0;
+      downRounds = 0;
+      cycles = 0;
+      startBtn.innerHTML = '<i class="ti ti-player-play"></i> Start';
+      arcBar.style.strokeDashoffset = CIRC;
+      updateDisplay();
+    }
+
+    updateDisplay();
+  </script>
+</body>
+</html>
